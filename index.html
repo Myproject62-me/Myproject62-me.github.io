@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File and Message Sender</title>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background: url('https://img.freepik.com/free-vector/beautiful-green-landscape-background_1048-2991.jpg?t=st=1738651266~exp=1738654866~hmac=e554cfc8edd589b0049d1f37abf10035f929f6da8fc17c2944cc816b7c3c8a5a&w=740') no-repeat center center fixed;
+            background-size: cover;
+            transition: transform 0.3s ease-in-out;
+        }
+
+        body:hover {
+            transform: scale(1.02);
+        }
+
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .container:hover {
+            transform: translateY(-5px);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        input[type="file"],
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-top: 5px;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: transform 0.2s, box-shadow 0.3s ease-in-out;
+        }
+
+        button:hover {
+            background-color: #45a049;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        #successMessage {
+            display: none;
+            color: green;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Send Files and Message</h2>
+        <form id="contactForm">
+            <div class="form-group">
+                <label for="subject">Subject:</label>
+                <input type="text" id="subject" name="subject" required>
+            </div>
+
+            <div class="form-group">
+                <label for="message">Message:</label>
+                <textarea id="message" name="message" rows="5" required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="attachment">Attachment:</label>
+                <input type="file" id="attachment" name="attachment">
+            </div>
+
+            <button type="submit">Send Message</button>
+        </form>
+        <div id="successMessage">
+            ✅ Message sent successfully!
+        </div>
+    </div>
+
+    <script>
+        // Initialize EmailJS
+        (function() {
+            emailjs.init('YOUR_EMAILJS_USER_ID'); // Replace with your EmailJS user ID
+        })();
+
+        document.getElementById('contactForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const subject = document.getElementById('subject').value;
+            const message = document.getElementById('message').value;
+            const attachment = document.getElementById('attachment').files[0];
+
+            let templateParams = {
+                subject: subject,
+                message: message,
+                to_email: 'sai474225@gmail.com'
+            };
+
+            if (attachment) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    templateParams.attachment = {
+                        name: attachment.name,
+                        data: e.target.result.split(',')[1]
+                    };
+
+                    sendEmail(templateParams);
+                };
+                reader.readAsDataURL(attachment);
+            } else {
+                sendEmail(templateParams);
+            }
+        });
+
+        function sendEmail(templateParams) {
+            emailjs.send('YOUR_EMAILJS_SERVICE_ID', 'YOUR_EMAILJS_TEMPLATE_ID', templateParams)
+                .then(function(response) {
+                    console.log('SUCCESS!', response.status, response.text);
+                    document.getElementById('successMessage').style.display = 'block';
+                    document.getElementById('contactForm').reset();
+                    setTimeout(() => {
+                        document.getElementById('successMessage').style.display = 'none';
+                    }, 3000);
+                }, function(error) {
+                    console.log('FAILED...', error);
+                    alert('Failed to send message. Please try again.');
+                });
+        }
+    </script>
+</body>
+</html>
