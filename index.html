@@ -10,6 +10,28 @@
             max-width: 600px;
             margin: 20px auto;
             padding: 20px;
+            background-image: url('2991.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+            transition: transform 0.3s ease-in-out;
+        }
+
+        body:hover {
+            transform: scale(1.02);
+        }
+
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+            transition: transform 0.5s ease-in-out, box-shadow 0.5s ease-in-out;
+        }
+
+        .container:hover {
+            transform: rotateY(10deg);
+            box-shadow: 0 12px 20px rgba(0, 0, 0, 0.3);
         }
 
         .form-group {
@@ -24,12 +46,21 @@
 
         input[type="text"],
         input[type="number"],
-        textarea {
+        textarea,
+        input[type="file"] {
             width: 100%;
             padding: 10px;
             border: 1px solid #ddd;
             border-radius: 4px;
             margin-top: 5px;
+            transition: transform 0.3s ease-in-out;
+        }
+
+        input:focus,
+        textarea:focus {
+            transform: scale(1.02);
+            border-color: #4CAF50;
+            box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
         }
 
         button {
@@ -40,7 +71,7 @@
             border-radius: 4px;
             cursor: pointer;
             font-size: 16px;
-            transition: transform 0.2s, box-shadow 0.3s ease-in-out;
+            transition: transform 0.3s, box-shadow 0.3s ease-in-out;
         }
 
         button:hover {
@@ -51,38 +82,68 @@
         button:active {
             transform: scale(0.95);
         }
+
+        #ratings {
+            margin-top: 20px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .feedback-item {
+            padding: 10px;
+            margin-top: 10px;
+            background: #f9f9f9;
+            border-left: 5px solid #4CAF50;
+            border-radius: 4px;
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .feedback-item:hover {
+            transform: translateX(10px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h2>Website Feedback</h2>
-        <form id="feedbackForm" onsubmit="sendFeedback(event)">
+        <form id="feedbackForm" action="https://formsubmit.co/sai474225@gmail.com" method="POST" enctype="multipart/form-data" onsubmit="showFeedback(event)">
             <div class="form-group">
                 <label for="name">Name:</label>
                 <input type="text" id="name" name="name" required>
             </div>
+
             <div class="form-group">
                 <label for="rating">Rating (1-5):</label>
                 <input type="number" id="rating" name="rating" min="1" max="5" required>
             </div>
+
             <div class="form-group">
                 <label for="comments">Comments:</label>
                 <textarea id="comments" name="comments" rows="5" required></textarea>
             </div>
+
+            <div class="form-group">
+                <label for="attachment">Attach a file:</label>
+                <input type="file" id="attachment" name="attachment" required>
+            </div>
+
+            <!-- Hidden inputs for settings -->
+            <input type="hidden" name="_captcha" value="false">
+            <input type="hidden" name="_next" value="https://yourwebsite.com/thank-you.html">
+
             <button type="submit">Submit Feedback</button>
         </form>
-        <div id="ratings"></div>
+        
+        <div id="ratings">
+            <h3>Recent Feedback:</h3>
+        </div>
     </div>
 
     <script>
-        const ratingsContainer = document.getElementById('ratings');
-
-        function addEmoji(emoji) {
-            const comments = document.getElementById('comments');
-            comments.value += emoji;
-        }
-
-        function sendFeedback(event) {
+        function showFeedback(event) {
             event.preventDefault();
 
             const name = document.getElementById('name').value;
@@ -90,44 +151,22 @@
             const comments = document.getElementById('comments').value;
 
             if (name && rating && comments) {
-                const feedbackElement = document.createElement('p');
-                feedbackElement.textContent = name + ' rated this website ' + rating + '/5 and commented: "' + comments + '"';
-                ratingsContainer.appendChild(feedbackElement);
+                const ratingsContainer = document.getElementById('ratings');
 
-                // Prepare email data
-                const emailData = {
-                    to: 'sai474225@gmail.com',
-                    subject: 'New Website Feedback',
-                    body: 'Name: ' + name + '\nRating: ' + rating + '/5\nComments: ' + comments
-                };
+                const feedbackItem = document.createElement('div');
+                feedbackItem.classList.add('feedback-item');
+                feedbackItem.innerHTML = `<strong>${name}</strong> rated this website <strong>${rating}/5</strong><br> "${comments}"`;
+                
+                ratingsContainer.appendChild(feedbackItem);
 
-                // Use Email API to send the email
-                fetch('https://formsubmit.co/ajax/sai474225@gmail.com', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        name: emailData.subject,
-                        message: emailData.body
-                    })
-                })
-                .then(response => {
-                    if (response.ok) {
-                        alert('Feedback submitted and email sent successfully!');
-                    } else {
-                        alert('There was an error sending the email.');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('An error occurred. Please try again later.');
-                });
+                // Submit the form
+                document.getElementById('feedbackForm').submit();
 
                 // Clear the form fields
                 document.getElementById('name').value = '';
                 document.getElementById('rating').value = '';
                 document.getElementById('comments').value = '';
+                document.getElementById('attachment').value = '';
             } else {
                 alert('Please fill in all fields before submitting!');
             }
