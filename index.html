@@ -3,33 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>File and Message Sender</title>
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <title>Website Feedback</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             max-width: 600px;
             margin: 20px auto;
             padding: 20px;
-            background: url('https://img.freepik.com/free-vector/beautiful-green-landscape-background_1048-2991.jpg?t=st=1738651266~exp=1738654866~hmac=e554cfc8edd589b0049d1f37abf10035f929f6da8fc17c2944cc816b7c3c8a5a&w=740') no-repeat center center fixed;
-            background-size: cover;
-            transition: transform 0.3s ease-in-out;
-        }
-
-        body:hover {
-            transform: scale(1.02);
-        }
-
-        .container {
-            background-color: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
-            transition: transform 0.3s ease-in-out;
-        }
-
-        .container:hover {
-            transform: translateY(-5px);
         }
 
         .form-group {
@@ -43,7 +23,7 @@
         }
 
         input[type="text"],
-        input[type="file"],
+        input[type="number"],
         textarea {
             width: 100%;
             padding: 10px;
@@ -71,89 +51,86 @@
         button:active {
             transform: scale(0.95);
         }
-
-        #successMessage {
-            display: none;
-            color: green;
-            margin-top: 10px;
-            font-weight: bold;
-        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2>Send Files and Message</h2>
-        <form id="contactForm">
+        <h2>Website Feedback</h2>
+        <form id="feedbackForm" onsubmit="sendFeedback(event)">
             <div class="form-group">
-                <label for="subject">Subject:</label>
-                <input type="text" id="subject" name="subject" required>
+                <label for="name">Name:</label>
+                <input type="text" id="name" name="name" required>
             </div>
-
             <div class="form-group">
-                <label for="message">Message:</label>
-                <textarea id="message" name="message" rows="5" required></textarea>
+                <label for="rating">Rating (1-5):</label>
+                <input type="number" id="rating" name="rating" min="1" max="5" required>
             </div>
-
             <div class="form-group">
-                <label for="attachment">Attachment:</label>
-                <input type="file" id="attachment" name="attachment">
+                <label for="comments">Comments:</label>
+                <textarea id="comments" name="comments" rows="5" required></textarea>
             </div>
-
-            <button type="submit">Send Message</button>
+            <button type="submit">Submit Feedback</button>
         </form>
-        <div id="successMessage">
-            ✅ Message sent successfully!
-        </div>
+        <div id="ratings"></div>
     </div>
 
     <script>
-        // Initialize EmailJS
-        (function() {
-            emailjs.init('YOUR_EMAILJS_USER_ID'); // Replace with your EmailJS user ID
-        })();
+        const ratingsContainer = document.getElementById('ratings');
 
-        document.getElementById('contactForm').addEventListener('submit', function(e) {
-            e.preventDefault();
+        function addEmoji(emoji) {
+            const comments = document.getElementById('comments');
+            comments.value += emoji;
+        }
 
-            const subject = document.getElementById('subject').value;
-            const message = document.getElementById('message').value;
-            const attachment = document.getElementById('attachment').files[0];
+        function sendFeedback(event) {
+            event.preventDefault();
 
-            let templateParams = {
-                subject: subject,
-                message: message,
-                to_email: 'sai474225@gmail.com'
-            };
+            const name = document.getElementById('name').value;
+            const rating = document.getElementById('rating').value;
+            const comments = document.getElementById('comments').value;
 
-            if (attachment) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    templateParams.attachment = {
-                        name: attachment.name,
-                        data: e.target.result.split(',')[1]
-                    };
+            if (name && rating && comments) {
+                const feedbackElement = document.createElement('p');
+                feedbackElement.textContent = name + ' rated this website ' + rating + '/5 and commented: "' + comments + '"';
+                ratingsContainer.appendChild(feedbackElement);
 
-                    sendEmail(templateParams);
+                // Prepare email data
+                const emailData = {
+                    to: 'sai474225@gmail.com',
+                    subject: 'New Website Feedback',
+                    body: 'Name: ' + name + '\nRating: ' + rating + '/5\nComments: ' + comments
                 };
-                reader.readAsDataURL(attachment);
-            } else {
-                sendEmail(templateParams);
-            }
-        });
 
-        function sendEmail(templateParams) {
-            emailjs.send('YOUR_EMAILJS_SERVICE_ID', 'YOUR_EMAILJS_TEMPLATE_ID', templateParams)
-                .then(function(response) {
-                    console.log('SUCCESS!', response.status, response.text);
-                    document.getElementById('successMessage').style.display = 'block';
-                    document.getElementById('contactForm').reset();
-                    setTimeout(() => {
-                        document.getElementById('successMessage').style.display = 'none';
-                    }, 3000);
-                }, function(error) {
-                    console.log('FAILED...', error);
-                    alert('Failed to send message. Please try again.');
+                // Use Email API to send the email
+                fetch('https://formsubmit.co/ajax/sai474225@gmail.com', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: emailData.subject,
+                        message: emailData.body
+                    })
+                })
+                .then(response => {
+                    if (response.ok) {
+                        alert('Feedback submitted and email sent successfully!');
+                    } else {
+                        alert('There was an error sending the email.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred. Please try again later.');
                 });
+
+                // Clear the form fields
+                document.getElementById('name').value = '';
+                document.getElementById('rating').value = '';
+                document.getElementById('comments').value = '';
+            } else {
+                alert('Please fill in all fields before submitting!');
+            }
         }
     </script>
 </body>
